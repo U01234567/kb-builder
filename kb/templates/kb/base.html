@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}kb-builder review{% endblock %}</title>
+<style>
+:root { color-scheme: light; --bg: #f4f5f7; --ink: #15171a; --muted: #5d636b; --line: #d5d8dd; --accent: #1f3864;
+  --user: #e3e9f6; --bot: #ffffff; --ok: #c6efce; --warn: #ffeb9c; --bad: #ffc7ce; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--accent); }
+h1 { font-size: 22px; margin: 0 0 16px; }
+.muted { color: var(--muted); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; background: #fff; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.chat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 12px; align-content: start; }
+.bubble { padding: 10px 14px; border-radius: 14px; max-width: 92%; white-space: pre-wrap; }
+.user { justify-self: end; background: var(--user); }
+.bot { justify-self: start; background: var(--bot); border: 1px solid var(--line); }
+.panel { display: grid; gap: 14px; align-content: start; }
+.box { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.box h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+.evidence { border-top: 1px solid var(--line); padding: 8px 0; }
+.evidence.removed { opacity: .5; }
+.bad { color: #9c0006; }
+textarea { width: 100%; min-height: 70px; font: inherit; padding: 6px; }
+.statuses label { margin-right: 14px; }
+button { font: inherit; padding: 6px 14px; margin-right: 8px; cursor: pointer; }
+.Accept { background: var(--ok); } .Revisions { background: var(--warn); } .Reject { background: var(--bad); }
+</style>
+</head>
+<body><main>{% block content %}{% endblock %}</main></body>
+</html>

@@ -1,0 +1,18 @@
+# Settings for one project. kb-builder reads only this file; everything here may change per project.
+
+[model]
+llm = "gemma3:27b"      # the language model, as Ollama names it; the pilot compares a few
+embeddings = "bge-m3"   # multilingual embedding model for the search index
+gpus = "0,1"            # GPUs as numbered by nvidia-smi
+context = 32768         # tokens the model may read at once (question + passages + answer)
+
+[run]
+candidates = 20                         # passages per question that the model judges
+question_variants = 2                   # extra phrasings of each question
+not_found = "Not found in the sources." # the answer when no passage carries one
+
+# Column headers in kb.xlsx. Leave a line out to keep the default shown here.
+[columns]
+answer = "Answer"
+answer_simple = "Answer (simple)"
+question_variant = "Question variant {n}"

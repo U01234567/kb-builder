@@ -1,0 +1,20 @@
+{% extends "kb/base.html" %}
+{% block content %}
+<h1>Review kb.xlsx</h1>
+<form method="post" action="{% url 'reviewer' %}">{% csrf_token %}
+  <label>Your name, saved with every review: <input name="reviewer" value="{{ reviewer }}" required></label>
+  <button>Save name</button>
+</form>
+<p></p>
+<table>
+  <tr><th>Topic</th><th>Questions</th><th>Answered</th><th>Accept</th><th>Revisions</th><th>Reject</th><th>Still to review</th><th></th></tr>
+  {% for t in topics %}
+  <tr>
+    <td>{{ t.name }}</td><td>{{ t.questions }}</td><td>{{ t.answered }}</td>
+    <td>{{ t.counts.Accept }}</td><td>{{ t.counts.Revisions }}</td><td>{{ t.counts.Reject }}</td><td>{{ t.open }}</td>
+    <td>{% if t.first %}<a href="{% url 'question' t.first %}">Start</a>{% endif %}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="muted">Every save goes straight into kb.xlsx. Do not have it open in Excel at the same time.</p>
+{% endblock %}

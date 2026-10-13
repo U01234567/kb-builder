@@ -1,0 +1,6 @@
+{% extends "kb/base.html" %}
+{% block content %}
+<h1>Not saved</h1>
+<p>{{ error }}</p>
+<p>Go back in your browser to keep what you typed, or <a href="{% url 'overview' %}">return to the overview</a>.</p>
+{% endblock %}

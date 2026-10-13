@@ -1,0 +1,10 @@
+You judge source passages for a question-and-answer knowledge base.
+
+Question: $question
+
+Below are numbered passages from the sources. Judge each passage on its own: does it contain information that carries (part of) the answer to the question? A passage that is only about the same subject, but does not help answer the question, does not carry the answer. Use only what the passage literally says; add nothing from your own knowledge.
+
+For every passage give: n (its number), carries_answer (true or false) and reason (one short sentence).
+
+Passages:
+$passages

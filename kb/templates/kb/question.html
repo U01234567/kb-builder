@@ -1,0 +1,48 @@
+{% extends "kb/base.html" %}
+{% block title %}{{ q.id }} · {{ topic }}{% endblock %}
+{% block content %}
+<p class="muted">
+  <a href="{% url 'overview' %}">Overview</a> · {{ topic }} · {{ q.id }} ({{ number }} of {{ total }})
+  {% if previous %} · <a href="{% url 'question' previous %}">← previous</a>{% endif %}
+  {% if next %} · <a href="{% url 'question' next %}">next →</a>{% endif %}
+  {% if not reviewer %} · <b>Set your name on the overview first.</b>{% endif %}
+</p>
+<form method="post">{% csrf_token %}
+<div class="grid">
+  <div class="chat">
+    <div class="bubble user">{{ q.question }}</div>
+    {% if q.final_answer %}
+      <div class="bubble bot">{{ q.final_answer }}</div>
+      <p class="muted">Final answer (edited). Generated answer: {{ q.answer }}</p>
+    {% else %}
+      <div class="bubble bot">{{ q.answer|default:"(not generated yet)" }}</div>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <div class="box"><h2>{{ labels.answer_simple }}</h2>{{ q.answer_simple|default:"–"|linebreaksbr }}</div>
+    <div class="box"><h2>Question variants</h2>{% for v in variants %}<div>{{ v }}</div>{% empty %}–{% endfor %}</div>
+    <div class="box"><h2>Evidence</h2>
+      {% for e in evidence %}
+      <div class="evidence{% if e.Removed %} removed{% endif %}">
+        <b>{{ e.source.Title|default:e.Source }}</b> <span class="{% if e.Verified != '✓' %}bad{% endif %}">{{ e.Verified }}</span><br>
+        <span class="muted">{{ e.source.Files|default:"(file missing)" }} · {{ e.Location }}</span>
+        <div>“{{ e.Quote }}”</div>
+        <label><input type="checkbox" name="remove_{{ e.row }}" {% if e.Removed %}checked{% endif %}> remove this source</label>
+        <select name="reason_{{ e.row }}">{% for r in reasons %}<option {% if e.Reason == r %}selected{% endif %}>{{ r }}</option>{% endfor %}</select>
+      </div>
+      {% empty %}<p class="muted">No evidence.</p>{% endfor %}
+    </div>
+    <div class="box"><h2>Review</h2>
+      <div class="statuses">
+        {% for s in statuses %}<label class="{{ s }}"><input type="radio" name="status" value="{{ s }}" {% if q.status == s %}checked{% endif %}> {{ s }}</label>{% endfor %}
+        <label><input type="radio" name="status" value="" {% if not q.status %}checked{% endif %}> not reviewed</label>
+      </div>
+      <p>Comment<br><textarea name="comment">{{ q.comment|default:"" }}</textarea></p>
+      <p>Final answer (leave empty to keep the generated answer)<br><textarea name="final_answer">{{ q.final_answer|default:"" }}</textarea></p>
+      <button name="save">Save</button><button name="next">Save and next to review</button>
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}

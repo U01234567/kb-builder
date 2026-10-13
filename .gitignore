@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Never committed: the study itself, and what start.py downloads
+/project/
+/models/
+/tools/
+
+# Logs and temporary files
+/start_kb-builder.log
+/ollama.log
+*.tmp
+
+# Operating systems
+.DS_Store
+Thumbs.db

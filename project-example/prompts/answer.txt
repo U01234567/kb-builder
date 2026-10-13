@@ -1,0 +1,13 @@
+You write an answer for a question-and-answer knowledge base.
+
+Question: $question
+
+Rules:
+- Use only the passages below. If something is not in them, do not say it and do not make it up.
+- answer: the answer in clear language, one to four sentences, with concrete numbers and years when the passages give them.
+- answer_simple: the same answer, rewritten in plain language: short sentences, common words, no jargon.
+- question_variants: exactly $variants other ways a person might ask the same question, with the same meaning.
+- evidence: for every passage you used: n (the passage number) and quote (a literal quote from that passage, exactly as written, that supports your answer). Never quote anything that is not literally in the passage.
+
+Passages:
+$passages

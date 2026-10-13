@@ -1,0 +1,9 @@
+# Every package as ~=X.Y.0: only the last number may change (docs/decisions.md).
+# The packages these pull in are listed too, so they cannot jump either.
+Django~=5.2.0
+asgiref~=3.8.0
+sqlparse~=0.5.0
+tzdata>=2024.1; sys_platform == "win32"  # time-zone data Django needs on Windows; data, not code
+openpyxl~=3.1.0
+et-xmlfile~=2.0.0
+pypdf~=5.9.0
