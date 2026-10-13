@@ -23,13 +23,15 @@ import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LOG = ROOT / "start_kb-builder.log"
-OLLAMA_VERSION = "0.12.6"  # pinned on purpose; a newer one is a decision (docs/decisions.md)
+OLLAMA_VERSION = "0.40.3"  # pinned on purpose; a newer one is a decision (docs/decisions.md)
+OLLAMA_ARCHIVE = "ollama-linux-amd64.tar.zst"  # the NVIDIA build for Linux, as named on the release page
 OLLAMA_DIR = ROOT / "tools" / "ollama"
 WINDOWS = os.name == "nt"
 VENV_PYTHON = ROOT / ".venv" / ("Scripts/python.exe" if WINDOWS else "bin/python")
@@ -111,30 +113,44 @@ def create_project() -> str:
 def install_ollama() -> str:
     """The pinned Ollama release, unpacked into tools/ollama (no administrator rights needed).
 
-    Asked once: a computer with GPUs may still be used for reviewing only.
+    Asked once: a computer with GPUs may still be used for reviewing only. A new OLLAMA_VERSION
+    replaces the old one without asking.
     """
     marker = OLLAMA_DIR / "VERSION"
     if marker.is_file() and marker.read_text().strip() == OLLAMA_VERSION:
         return f"Ollama {OLLAMA_VERSION} is there."
-    if not marker.is_file() and not ask("This computer has GPUs. Set it up for generating (downloads Ollama, about 2 GB)?"):
+    if not marker.is_file() and not ask("This computer has GPUs. Set it up for generating (downloads Ollama, about 1.5 GB)?"):
         return "Ollama skipped: this computer will only review."
     shutil.rmtree(OLLAMA_DIR, ignore_errors=True)
     OLLAMA_DIR.mkdir(parents=True)
-    for name in ("ollama-linux-amd64.tgz", "ollama-linux-amd64.tar.zst"):  # the archive name differs per release
-        url = f"https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/{name}"
-        archive = OLLAMA_DIR.parent / name
-        try:
-            say(f"      Downloading {url} …")
-            urllib.request.urlretrieve(url, archive)
-        except urllib.error.HTTPError:
-            continue
-        result = run(["tar", "-xf", str(archive), "-C", str(OLLAMA_DIR)])
-        archive.unlink()
-        if result.returncode != 0:
-            raise SystemExit(f"Unpacking {name} failed: {result.stderr.strip()}")
-        marker.write_text(OLLAMA_VERSION)
-        return f"Ollama {OLLAMA_VERSION} installed in tools/ollama."
-    raise SystemExit(f"Ollama {OLLAMA_VERSION} could not be downloaded. Check https://github.com/ollama/ollama/releases.")
+    url = f"https://github.com/ollama/ollama/releases/download/v{OLLAMA_VERSION}/{OLLAMA_ARCHIVE}"
+    archive = OLLAMA_DIR.parent / OLLAMA_ARCHIVE
+    say(f"      Downloading {url} …")
+    try:
+        urllib.request.urlretrieve(url, archive)
+    except urllib.error.HTTPError as error:
+        raise SystemExit(f"Ollama {OLLAMA_VERSION} could not be downloaded ({error}). "
+                         "Check the version and file name on https://github.com/ollama/ollama/releases.") from None
+    unpack(archive, OLLAMA_DIR)
+    archive.unlink()
+    if not (OLLAMA_DIR / "bin" / "ollama").is_file():
+        raise SystemExit(f"{OLLAMA_ARCHIVE} was unpacked into tools/ollama/, but bin/ollama is not in it.")
+    marker.write_text(OLLAMA_VERSION)
+    return f"Ollama {OLLAMA_VERSION} installed in tools/ollama."
+
+
+def unpack(archive: Path, target: Path) -> None:
+    """Unpack a .tgz or .tar.zst archive: Python 3.14+ reads both itself, older Pythons need tar with zstd."""
+    try:
+        with tarfile.open(archive) as tar:
+            tar.extractall(target, filter="data")
+        return
+    except tarfile.TarError:
+        pass
+    result = run(["tar", "-xf", str(archive), "-C", str(target)])
+    if result.returncode != 0:
+        raise SystemExit(f"Unpacking {archive.name} failed: {result.stderr.strip()}. "
+                         "Use Python 3.14 or newer for the start script, or install zstd.")
 
 
 def main() -> None:

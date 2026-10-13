@@ -50,7 +50,11 @@ prompts and the model for every run, so answers can always be traced to how they
 ## Updating
 
 Run the start script; it offers a newer version when there is one. A newer Ollama is a change of
-`OLLAMA_VERSION` in `scripts/start.py`, made on purpose and noted in `docs/decisions.md`.
+`OLLAMA_VERSION` (and, if the release page names it differently, `OLLAMA_ARCHIVE`) in `scripts/start.py`,
+made on purpose and noted in `docs/decisions.md`; the start script then replaces the old Ollama by itself.
+
+Each model needs a minimum Ollama version. When `generate` stops with "requires a newer version of
+Ollama", raise `OLLAMA_VERSION` to a release that is at least as new as the model.
 
 ## Handing over
 

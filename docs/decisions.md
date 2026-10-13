@@ -40,4 +40,6 @@ packages it pulls in. A minor or major upgrade is a deliberate change with a lin
   line by line across both columns come out mixed; see `project/index/text/` and the ✗ marks.
 - **Ollama** (not a Python package): runs the language and embedding models on the GPUs, with output
   forced into a JSON schema. Pinned in `scripts/start.py`; talked to with the standard library.
+  0.40.3 (October 2026): 0.12.6 was too old for gemma3. 0.12.6 came as a `.tgz`, 0.40.3 as a `.tar.zst`,
+  which the start script unpacks with Python 3.14's own tarfile, or else with `tar` and `zstd`.
 - Everything else (HTML reading, search index, TOML, HTTP) is Python's standard library.

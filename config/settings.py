@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-KB_BUILDER_VERSION: str = "0.2.1"  # bump on every release; start.py compares it with GitHub
+KB_BUILDER_VERSION: str = "0.2.2"  # bump on every release; start.py compares it with GitHub
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PROJECT_DIR = BASE_DIR / "project"
