@@ -60,7 +60,8 @@ class Command(BaseCommand):
         with ollama.running(proj.gpus, proj.context) as client:
             for model in (proj.llm, proj.embeddings):
                 self.stdout.write(f"Model {model}: downloading if needed…")
-                client.pull(model)
+                for progress in client.pull(model):
+                    self.stdout.write(f"  {progress}")
             embed = partial(client.embed, proj.embeddings)
             chat = partial(client.chat, proj.llm)
             db = index.connect(proj.index_dir)

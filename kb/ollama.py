@@ -5,6 +5,7 @@ import os
 import socket
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from contextlib import contextmanager
 from pathlib import Path
@@ -12,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 BINARY = ROOT / "tools" / "ollama" / "bin" / "ollama"
 MODELS = ROOT / "models"
+HOME = ROOT / "tools" / "home"  # what Ollama and CUDA would otherwise write to your home folder
 
 
 class Client:
@@ -26,7 +28,7 @@ class Client:
         """Send `body` as JSON to an Ollama endpoint and return its JSON reply."""
         request = urllib.request.Request(self.base_url + path, data=json.dumps(body).encode(),
                                          headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(request, timeout=3600) as response:
+        with send(request, 3600) as response:
             return json.loads(response.read())
 
     def chat(self, model: str, prompt: str, schema: dict) -> dict:
@@ -47,9 +49,33 @@ class Client:
             vectors += self.post("/api/embed", {"model": model, "input": texts[start:start + 32]})["embeddings"]
         return vectors
 
-    def pull(self, model: str) -> None:
-        """Download a model into models/ when it is not there yet; quick when it is."""
-        self.post("/api/pull", {"model": model, "stream": False})
+    def pull(self, model: str):
+        """Download a model into models/ when it is not there yet; quick when it is.
+
+        Yields a progress line whenever the step changes and every 10% within a step, so a download
+        of many gigabytes is visible and never waits silently for one reply.
+        """
+        request = urllib.request.Request(self.base_url + "/api/pull", data=json.dumps({"model": model}).encode(),
+                                         headers={"Content-Type": "application/json"})
+        step, shown = "", -10
+        with send(request, 600) as response:
+            for line in response:
+                status = json.loads(line)
+                if "error" in status:
+                    raise RuntimeError(f"Downloading {model} failed: {status['error']}")
+                percent = 100 * status["completed"] // status["total"] if status.get("total") and "completed" in status else None
+                if status.get("status", "") != step or (percent is not None and percent >= shown + 10):
+                    step, shown = status.get("status", ""), percent if percent is not None else -10
+                    yield f"{step} {percent}%" if percent is not None else step
+
+
+def send(request: urllib.request.Request, timeout: float):
+    """Open a request to Ollama; an HTTP error becomes a RuntimeError with Ollama's own explanation."""
+    try:
+        return urllib.request.urlopen(request, timeout=timeout)
+    except urllib.error.HTTPError as error:
+        detail = error.read().decode(errors="replace").strip() or error.reason
+        raise RuntimeError(f"Ollama answered {error.code}: {detail} (more in ollama.log)") from None
 
 
 def free_port() -> int:
@@ -63,12 +89,14 @@ def free_port() -> int:
 def running(gpus: str, context: int):
     """The pinned Ollama, started for this run only on the given GPUs, and always stopped afterwards.
 
-    Its output goes to ollama.log in the repository folder.
+    Its output goes to ollama.log, its models to models/, and everything it would write to your home
+    folder (a key pair, a GPU cache) to tools/home/: deleting the repository folder removes it all.
     """
     if not BINARY.is_file():
         raise FileNotFoundError(f"{BINARY} is missing. Run the start script on this computer first.")
     port = free_port()
-    env = dict(os.environ, OLLAMA_HOST=f"127.0.0.1:{port}", OLLAMA_MODELS=str(MODELS),
+    HOME.mkdir(parents=True, exist_ok=True)
+    env = dict(os.environ, HOME=str(HOME), OLLAMA_HOST=f"127.0.0.1:{port}", OLLAMA_MODELS=str(MODELS),
                CUDA_VISIBLE_DEVICES=gpus, CUDA_DEVICE_ORDER="PCI_BUS_ID")
     with (ROOT / "ollama.log").open("a", encoding="utf-8") as log:
         server = subprocess.Popen([str(BINARY), "serve"], env=env, stdout=log, stderr=subprocess.STDOUT)

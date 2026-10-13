@@ -38,10 +38,10 @@ adapt them to yours. kb-builder itself only needs Python 3.12 or newer, the pack
 4. Put your sources in `project/materials/<folder>/` and your questions in `project/kb.xlsx`.
 5. `.venv/bin/python manage.py preflight`, then `.venv/bin/python manage.py generate`.
 
-Long runs keep going after you log out with:
+Long runs keep going after you log out with (`-u` writes each line to the log straight away):
 
 ```bash
-nohup .venv/bin/python manage.py generate --mode missing --yes > generate.log 2>&1 &
+nohup .venv/bin/python -u manage.py generate --mode missing --yes > generate.log 2>&1 &
 ```
 
 **On a laptop**

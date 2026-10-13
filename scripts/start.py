@@ -90,10 +90,11 @@ def offer_update() -> str:
 
 
 def install_packages() -> str:
-    """Create .venv when it is missing, and install requirements.txt into it."""
+    """Create .venv when it is missing, and install requirements.txt into it (no pip cache in your home folder)."""
     if not VENV_PYTHON.exists() and run([sys.executable, "-m", "venv", str(ROOT / ".venv")]).returncode != 0:
         raise SystemExit("Could not create .venv. See the log.")
-    result = run([str(VENV_PYTHON), "-m", "pip", "install", "--disable-pip-version-check", "-q", "-r", "requirements.txt"])
+    result = run([str(VENV_PYTHON), "-m", "pip", "install", "--disable-pip-version-check", "--no-cache-dir", "-q",
+                  "-r", "requirements.txt"])
     if result.returncode != 0:
         raise SystemExit(f"Installing the packages failed:\n{result.stderr.strip()[-600:]}")
     return "All packages are installed in .venv."
